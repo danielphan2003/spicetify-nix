@@ -38,7 +38,7 @@ let
 
   # Setup spicetify
   spicetify-cli-unwrapped = pkgs.callPackage ./spicetify-cli.nix {};
-  spicetify-cli-wrapper = "SPICETIFY_CONFIG=. ${spicetify-cli-unwrapped}/bin/spicetify";
+  spicetify-cli-wrapper = "SPICETIFY_CONFIG=. ${spicetify-cli-unwrapped}/bin/spicetify-cli";
 
   spicetify-themes = pkgs.callPackage ./spicetify-themes.nix {};
 
