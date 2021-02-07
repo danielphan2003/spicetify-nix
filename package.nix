@@ -114,7 +114,7 @@ pkgs.spotify.overrideAttrs (oldAttrs: rec {
       lyric_always_show ${boolToString lyricAlwaysShow } \
       lyric_force_no_sync ${boolToString lyricForceNoSync }
 
-    ${spicetify-wrapper} backup apply
+    ${spicetify-cli-wrapper} backup apply
 
     cd $out/share/spotify
     ${customAppsFixupCommands}
