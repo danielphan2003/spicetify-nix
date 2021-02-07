@@ -69,7 +69,7 @@ pkgs.spotify.overrideAttrs (oldAttrs: rec {
     find ${spicetify-themes} -maxdepth 1 -type d -exec ln -s {} Themes \;
     ${extraCommands}
     
-    ${spicetify-wrapper} config \
+    ${spicetify-cli-wrapper} config \
       spotify_path "$out/share/spotify" \
       prefs_path "$out/prefs" \
       current_theme ${theme} \
