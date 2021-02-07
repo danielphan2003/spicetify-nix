@@ -9,7 +9,7 @@ stdenv.mkDerivation {
     owner = "morpheusthewhite";
     repo = "spicetify-themes";
     rev = "a4af565eb32ccf665a51c11ff79616a1cabad9ec";
-    sha256 = "1k44g8rmf8bh4kk16w4n9z1502ag3w67ad3jx28327ykq8pq5w29";
+    sha256 = "sha256-WdDjKlIUkygN23G/y1AfnLk6eNDeL+kr8dS+Gicncoc=";
     fetchSubmodules = true;
   };
 
