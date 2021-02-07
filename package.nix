@@ -37,10 +37,10 @@ let
   makeLnCommands = type: (mapAttrsToList (name: path: "ln -sf ${path} ./${type}/${name}"));
 
   # Setup spicetify
-  spicetifyPkg = pkgs.callPackage ./spicetify.nix {};
-  spicetify = "SPICETIFY_CONFIG=. ${spicetifyPkg}/spicetify";
+  spicetify-cli-unwrapped = pkgs.callPackage ./spicetify-cli.nix {};
+  spicetify-cli-wrapper = "SPICETIFY_CONFIG=. ${spicetify-cli-unwrapped}/spicetify";
 
-  themes = pkgs.callPackage ./themes-src.nix {};
+  spicetify-themes = pkgs.callPackage ./spicetify-themes.nix {};
 
   # Dribblish is a theme which needs a couple extra settings
   isDribblish = theme == "Dribbblish";
@@ -66,10 +66,10 @@ pkgs.spotify.overrideAttrs (oldAttrs: rec {
     mkdir Extensions
     mkdir CustomApps
 
-    find ${themes} -maxdepth 1 -type d -exec ln -s {} Themes \;
+    find ${spicetify-themes} -maxdepth 1 -type d -exec ln -s {} Themes \;
     ${extraCommands}
     
-    ${spicetify} config \
+    ${spicetify-wrapper} config \
       spotify_path "$out/share/spotify" \
       prefs_path "$out/prefs" \
       current_theme ${theme} \
@@ -114,7 +114,7 @@ pkgs.spotify.overrideAttrs (oldAttrs: rec {
       lyric_always_show ${boolToString lyricAlwaysShow } \
       lyric_force_no_sync ${boolToString lyricForceNoSync }
 
-    ${spicetify} backup apply
+    ${spicetify-wrapper} backup apply
 
     cd $out/share/spotify
     ${customAppsFixupCommands}
