@@ -1,34 +1,48 @@
 { 
-  pkgs ? import <nixpkgs> {},
-  theme ? "SpicetifyDefault",
-  colorScheme ? "",
-  thirdParyThemes ? {},
-  thirdParyExtensions ? {},
-  thirdParyCustomApps ? {},
-  enabledExtensions ? [],
-  enabledCustomApps ? [],
-  spotifyLaunchFlags ? "",
-  injectCss ? false,
-  replaceColors ? false,
-  overwriteAssets ? false,
-  disableSentry ? true,
-  disableUiLogging ? true,
-  removeRtlRule ? true,
-  exposeApis ? true,
-  disableUpgradeCheck ? true,
-  fastUserSwitching ? false,
-  visualizationHighFramerate ? false,
-  radio ? false,
-  songPage ? false,
-  experimentalFeatures ? false,
-  home ? false,
-  lyricAlwaysShow ? false,
-  lyricForceNoSync ? false
+extraPackages ? spkgs: []
+, extraConfig ? ""
+, spotifyPackages
+, dependencyOverrides ? { }
+, theme ? "SpicetifyDefault"
+, colorScheme ? ""
+, thirdParyThemes ? {}
+, thirdParyExtensions ? {}
+, thirdParyCustomApps ? {}
+, enabledExtensions ? []
+, enabledCustomApps ? []
+, spotifyLaunchFlags ? ""
+, injectCss ? false
+, replaceColors ? false
+, overwriteAssets ? false
+, disableSentry ? true
+, disableUiLogging ? true
+, removeRtlRule ? true
+, exposeApis ? true
+, disableUpgradeCheck ? true
+, fastUserSwitching ? false
+, visualizationHighFramerate ? false
+, radio ? false
+, songPage ? false
+, experimentalFeatures ? false
+, home ? false
+, lyricAlwaysShow ? false
+, lyricForceNoSync ? false
+, pkgs
+, lib
+, buildGoModule
+, spicetify-cli
 }:
-
 let
-  inherit (pkgs.lib.lists) foldr;
-  inherit (pkgs.lib.attrsets) mapAttrsToList;
+  inherit (lib.lists) foldr;
+  inherit (lib.attrsets) mapAttrsToList;
+
+  flake = import ./flake-compat-helper.nix { src=./.; };
+  lock = p: if dependencyOverrides ? ${p}
+            then dependencyOverrides.${p}
+            else flake.inputs.${p};
+  
+  overrides = self: super:
+    (pkgs.callPackage ./overrides.nix { inherit lock; } self super);
 
   # Helper functions
   pipeConcat = foldr (a: b: a + "|" + b) "";
@@ -37,10 +51,17 @@ let
   makeLnCommands = type: (mapAttrsToList (name: path: "ln -sf ${path} ./${type}/${name}"));
 
   # Setup spicetify
-  spicetify-cli-unwrapped = pkgs.callPackage ./spicetify-cli.nix {};
-  spicetify-cli-wrapper = "SPICETIFY_CONFIG=. ${spicetify-cli-unwrapped}/bin/spicetify-cli";
+  spicetify-cli-local = "SPICETIFY_CONFIG=. ${spicetify-cli}/bin/spicetify-cli";
 
-  spicetify-themes = pkgs.callPackage ./spicetify-themes.nix {};
+  spicetify-themes = stdenv.mkDerivation {
+    name = "spicetify-themes";
+    src = lock "spicetify-themes";
+    phases = [ "unpackPhase" "installPhase" ];
+    installPhase = ''
+      mkdir -p $out
+      cp -r * $out
+    '';
+  };
 
   # Dribblish is a theme which needs a couple extra settings
   isDribblish = theme == "Dribbblish";
@@ -60,7 +81,7 @@ let
   customAppsString = pipeConcat enabledCustomApps;
 in
 pkgs.spotify.overrideAttrs (oldAttrs: rec {
-  postInstall=''
+  postInstall = ''
     touch $out/prefs
     mkdir Themes
     mkdir Extensions
@@ -69,7 +90,7 @@ pkgs.spotify.overrideAttrs (oldAttrs: rec {
     find ${spicetify-themes} -maxdepth 1 -type d -exec ln -s {} Themes \;
     ${extraCommands}
     
-    ${spicetify-cli-wrapper} config \
+    ${spicetify-cli-local} config \
       spotify_path "$out/share/spotify" \
       prefs_path "$out/prefs" \
       current_theme ${theme} \
@@ -114,7 +135,7 @@ pkgs.spotify.overrideAttrs (oldAttrs: rec {
       lyric_always_show ${boolToString lyricAlwaysShow } \
       lyric_force_no_sync ${boolToString lyricForceNoSync }
 
-    ${spicetify-cli-wrapper} backup apply
+    ${spicetify-cli-local} backup apply
 
     cd $out/share/spotify
     ${customAppsFixupCommands}
