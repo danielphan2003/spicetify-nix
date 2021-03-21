@@ -1,4 +1,6 @@
-# Spicetify-Nix
+# [DEPRECATED] Spicetify-Nix
+Please visit [devos](https://github.com/divnix/devos) for more info on using Spicetify with NixOS 
+by importing modules into your system.
 
 Modifies Spotify using [spicetify-cli](https://github.com/khanhas/spicetify-cli).
 
